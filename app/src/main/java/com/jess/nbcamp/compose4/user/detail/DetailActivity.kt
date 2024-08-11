@@ -1,13 +1,14 @@
-package com.jess.nbcamp.compose4.user.signin
+package com.jess.nbcamp.compose4.user.detail
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import com.jess.nbcamp.compose4.user.signin.SignInScreen
 import com.jess.nbcamp.compose4.user.signup.SignUpViewModel
 
-class SignInActivity : ComponentActivity() {
+class DetailActivity : ComponentActivity() {
 
     private val viewModel: SignUpViewModel by viewModels()
 
@@ -15,7 +16,7 @@ class SignInActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SignInScreen(
+            DetailScreen(
                 viewModel = viewModel,
             )
         }

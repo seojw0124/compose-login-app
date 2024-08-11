@@ -1,6 +1,7 @@
 package com.jess.nbcamp.compose4.user.signin
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,16 +28,35 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jess.nbcamp.compose4.R
+import com.jess.nbcamp.compose4.user.detail.DetailActivity
 import com.jess.nbcamp.compose4.user.signup.SignUpActivity
+import com.jess.nbcamp.compose4.user.signup.SignUpViewModel
+import com.jess.nbcamp.compose4.util.Constants.EXTRA_USER
 
 @Composable
 fun SignInScreen(
+    viewModel: SignUpViewModel,
     modifier: Modifier = Modifier
 ) {
 
     val context = LocalContext.current
+
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val isSuccess by viewModel.isSuccess.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            Toast.makeText(context, "로그인 성공", Toast.LENGTH_SHORT).show()
+            val intent = Intent(context, DetailActivity::class.java)
+            intent.putExtra(EXTRA_USER, state)
+            context.startActivity(intent)
+        }
+    }
 
     Scaffold(
         modifier = modifier
@@ -64,14 +86,21 @@ fun SignInScreen(
 
             Input(
                 label = stringResource(id = R.string.sign_in_id),
-                input = ""
+                input = state.id,
+                onValueChange = {
+                    viewModel.onChangedId(it)
+                },
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Input(
                 label = stringResource(id = R.string.sign_in_password),
-                input = ""
+                input = state.password,
+                visualTransformation = PasswordVisualTransformation(),
+                onValueChange = {
+                    viewModel.onChangedPassword(it)
+                },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -79,7 +108,11 @@ fun SignInScreen(
             ActionButton(
                 text = stringResource(id = R.string.sign_in_login_in),
             ) {
-
+                if (state.id.isBlank() || state.password.isBlank()) {
+                    Toast.makeText(context, "아이디와 비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
+                    return@ActionButton
+                }
+                viewModel.signIn(state)
             }
 
             ActionButton(
@@ -98,6 +131,8 @@ private fun Input(
     label: String,
     input: String,
     modifier: Modifier = Modifier,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    onValueChange: (String) -> Unit,
 ) {
 
     Column(
@@ -116,9 +151,8 @@ private fun Input(
             modifier = Modifier
                 .fillMaxWidth(),
             value = input,
-            onValueChange = {
-
-            }
+            visualTransformation = visualTransformation,
+            onValueChange = onValueChange
         )
     }
 }
